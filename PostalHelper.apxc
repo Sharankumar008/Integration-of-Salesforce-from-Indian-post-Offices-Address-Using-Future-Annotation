@@ -1,0 +1,54 @@
+public class PostalHelper {
+    
+    @future(callout=true)
+    public static void doCallout(String pincode, String recordId){
+        
+        //Integration
+        
+        Http http=new Http();
+        HttpRequest request=new HttpRequest();
+        
+        String endpoint='https://api.postalpincode.in/pincode/'+pincode;
+        
+        request.setEndpoint(endpoint);
+        request.setMethod('GET'); 
+        
+		//Hit the endpoint
+		
+		HttpResponse response=http.send(request);
+        
+        
+        
+        if(response.getStatusCode()==200){
+            
+            //Destructuring JSON 
+            System.debug(response.getBody());
+            
+            List<Object> resultList=(List<Object>)JSON.deserializeUntyped(response.getBody());
+            Map<String,Object> resultMap=(Map<String,Object>)resultList[0];
+            
+            List<String> postOfficeList=new List<String>();
+            
+            for(Object post:(List<Object>)resultMap.get('PostOffice')){
+                Map<String,Object> p=(Map<String,Object>)post;
+                
+                postOfficeList.add((String)p.get('Name'));
+            }
+            System.debug(postOfficeList);
+            
+            String postOfficeName=String.join(postOfficeList,','); 
+            //Update
+            System.debug(postOfficeName);
+            Postal__c postalObj=new Postal__c();
+            postalObj.Id=recordId;
+            postalObj.Postal_Office_Address__c=postOfficeName;
+            
+            update postalObj;
+       
+        }
+        else{
+            System.debug(response.getStatusCode());
+        }
+    }
+
+}
