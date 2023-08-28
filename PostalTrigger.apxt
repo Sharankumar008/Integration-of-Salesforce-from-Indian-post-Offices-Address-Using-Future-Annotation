@@ -1,0 +1,11 @@
+trigger PostalTrigger on Postal__c (After insert) {
+    
+    Switch on Trigger.operationType{
+        when AFTER_INSERT{
+            for(postal__c record:Trigger.new){
+                	PostalHelper.doCallout(record.PostalCode__c,record.Id);
+            }
+        }
+    }
+
+}
